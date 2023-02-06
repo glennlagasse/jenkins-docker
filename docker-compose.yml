@@ -1,0 +1,57 @@
+version: '3.8'
+
+networks:
+  jenkins:
+
+volumes:
+  jenkins-data:
+  docker-certs:
+
+services:
+  jenkins:
+    image: glagasse/jenkins:latest
+    build: ./controller
+    privileged: true
+    container_name: jenkins
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+      - 50000:50000
+    environment:
+      #- DOCKER_HOST=tcp://docker:2376
+      - DOCKER_HOST=tcp://docker:2375
+      #- DOCKER_CERT_PATH=/certs/client
+      - DOCKER_CERT_PATH=""
+      #- DOCKER_TLS_VERIFY=1
+      - DOCKER_TLS_VERIFY=""
+      - JENKINS_ADMIN_ID=${JENKINS_ADMIN_ID}
+      - JENKINS_ADMIN_PASSWORD=${JENKINS_ADMIN_PASSWORD}
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      #- docker-certs:/certs/client:ro
+    networks:
+      - jenkins
+    healthcheck:
+      test: "curl -f http://localhost:8080/login || exit 1"
+      start_period: 10s
+
+  dind:
+    image: docker:dind
+    privileged: true
+    container_name: jenkins-docker
+    restart: unless-stopped
+    #ports:
+    #  - 2376:2376
+    #ports:
+    #  - 2375:2375
+    environment:
+      #- DOCKER_TLS_CERTDIR=/certs
+      - DOCKER_TLS_CERTDIR=
+    command: --storage-driver=overlay2
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      #- docker-certs:/certs/client
+    networks:
+      jenkins:
+        aliases:
+          - docker

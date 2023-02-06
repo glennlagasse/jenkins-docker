@@ -1,0 +1,63 @@
+jenkins:
+  authorizationStrategy:
+    globalMatrix:
+      permissions:
+        - "GROUP:Overall/Administer:authenticated"
+        - "USER:Overall/Administer:admin"
+  clouds:
+    - docker:
+        dockerApi:
+          connectTimeout: 60
+          dockerHost:
+            uri: "tcp://docker:2375"
+          readTimeout: 60
+        name: "docker"
+        templates:
+        - connector: "attach"
+          dockerTemplateBase:
+            cpuPeriod: 0
+            cpuQuota: 0
+            image: "glagasse/jenkins-agent-docker:latest-jdk17"
+            mounts:
+            - "type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock"
+            mountsString: "type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock"
+          labelString: "jenkins-agent"
+          name: "jenkins-agent"
+          pullTimeout: 300
+          remoteFs: "/home/jenkins/agent"
+  mode: EXCLUSIVE
+  noUsageStatistics: true
+  numexecutors: 0
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+       - id: ${JENKINS_ADMIN_ID}
+         password: ${JENKINS_ADMIN_PASSWORD}
+  systemMessage: "Controlled by Configuration as Code"
+jobs:
+  - script: >
+      folder('Management') {
+        description('Folder containing configuration, bootstrapping and seed jobs')
+      }
+  - script: >
+      job('Management/Job_DSL_Seed') {
+        scm {
+          git {
+            remote {
+              url 'ssh://github.com/glennlagasse/jenkins-jobs.git'
+            }
+          }
+        }
+        steps {
+          jobDsl {
+            targets 'jobs/**/*.groovy'
+          }
+        }
+      }
+security:
+  globalJobDslSecurityConfiguration:
+    useScriptSecurity: false
+unclassified:
+  location:
+    url: http://shire:8080/
