@@ -1,23 +1,19 @@
+FROM docker:23-cli as docker-cli
+
 FROM jenkins/jenkins:lts-jdk17
 
 LABEL maintainer="glagasse@glagasse.com"
 
-ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false
-ENV CASC_JENKINS_CONFIG /var/jenkins_home/casc.yaml
+ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false \
+    CASC_JENKINS_CONFIG /var/jenkins_home/casc.yaml
+    TZ=America/Los_Angeles
 
 USER root
 
-RUN apt-get update && apt-get install -y lsb-release
+RUN ln -snf /usr/share/zoneinfo/"${TZ}" /etc/localtime && echo "${TZ}" > /etc/timezone \
+    && dpkg-reconfigure -f noninteractive tzdata
 
-RUN curl -fsSLo /usr/share/keyrings/docker-archive-keyring.asc \
-    https://download.docker.com/linux/debian/gpg
-
-RUN echo "deb [arch=$(dpkg --print-architecture) \
-  signed-by=/usr/share/keyrings/docker-archive-keyring.asc] \
-  https://download.docker.com/linux/debian \
-    $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
-
-RUN apt-get update && apt-get install -y docker-ce-cli && apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
 
 USER jenkins
 

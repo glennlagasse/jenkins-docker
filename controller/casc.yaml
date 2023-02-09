@@ -60,4 +60,4 @@ security:
     useScriptSecurity: false
 unclassified:
   location:
-    url: http://shire:8080/
+    url: http://jenkins:8080/

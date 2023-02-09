@@ -5,12 +5,14 @@ networks:
 
 volumes:
   jenkins-data:
-  docker-certs:
+#  docker-certs:
 
 services:
   jenkins:
     image: glagasse/jenkins:latest
     build: ./controller
+    depends_on:
+      - dind
     privileged: true
     container_name: jenkins
     restart: unless-stopped
@@ -21,9 +23,9 @@ services:
       #- DOCKER_HOST=tcp://docker:2376
       - DOCKER_HOST=tcp://docker:2375
       #- DOCKER_CERT_PATH=/certs/client
-      - DOCKER_CERT_PATH=""
+      #- DOCKER_CERT_PATH=""
       #- DOCKER_TLS_VERIFY=1
-      - DOCKER_TLS_VERIFY=""
+      #- DOCKER_TLS_VERIFY=""
       - JENKINS_ADMIN_ID=${JENKINS_ADMIN_ID}
       - JENKINS_ADMIN_PASSWORD=${JENKINS_ADMIN_PASSWORD}
     volumes:
@@ -42,8 +44,8 @@ services:
     restart: unless-stopped
     #ports:
     #  - 2376:2376
-    #ports:
-    #  - 2375:2375
+    ports:
+      - 2375:2375
     environment:
       #- DOCKER_TLS_CERTDIR=/certs
       - DOCKER_TLS_CERTDIR=
