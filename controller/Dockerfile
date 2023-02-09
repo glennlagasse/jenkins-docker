@@ -4,9 +4,9 @@ FROM jenkins/jenkins:lts-jdk17
 
 LABEL maintainer="glagasse@glagasse.com"
 
-ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false \
-    CASC_JENKINS_CONFIG /var/jenkins_home/casc.yaml \
-    TZ=America/Los_Angeles
+ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false
+ENV CASC_JENKINS_CONFIG /var/jenkins_home/casc.yaml
+ENV TZ=America/Los_Angeles
 
 USER root
 
